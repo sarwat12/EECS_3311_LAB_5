@@ -55,7 +55,6 @@ feature -- Abstraction Function
 					Result.extend (pair)
 				end
 			end
-
 		ensure
 			-- This is the only place where you can refer to the three implementation attributes
 			-- `keys`, `data_items_1`, and `data_items_2`.
@@ -65,13 +64,18 @@ feature -- Abstraction Function
 			all_data_sets_in_model: -- TODO:
 				-- Hint: Each data set (tuple [k, d1, d2]) in the current repository is in the Result function.
 				-- If you can't get this postcondition to work, simply put TRUE here.
-				True
+				across 1 |..| keys.count is i all
+					(Result.item (keys.i_th (i)) ~ [data_items_1.item (i), data_items_2.at (keys.i_th (i))])
+				 	and (Result.domain.has (keys.i_th (i)))
+				end
 
 			all_model_pairs_in_repository: -- TODO:
 				-- Hint: Each (key, [data1, data2]) pair in the Result function is in the repository.
 				-- Also look at the type of `new_cursor` in FUN.
 				-- If you can't get this postcondition to work, simply put TRUE here.
-				True
+				across Result is i all
+					keys.has (i.first) and data_items_1.has (i.second.d1) and data_items_2.has (i.first)
+				end
 		end
 
 feature -- feature(s) required by ITERABLE
@@ -98,7 +102,7 @@ feature -- Constructor
 			data_items_2.compare_objects
 		ensure
 			empty_repository: -- TODO:
-				model.count ~ 0
+				model.is_empty
 		end
 
 feature -- Commands
@@ -184,7 +188,7 @@ feature -- Queries
 			Result := keys.count
 		ensure
 			correct_result: -- TODO:
-				True
+				Result = model.count
 		end
 
 	matching_keys (d1: DATA1; d2: DATA2): ITERABLE[KEY]
