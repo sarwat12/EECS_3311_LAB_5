@@ -44,9 +44,17 @@ feature -- Abstraction Function
 			-- Each function can be viewed as a set of pairs.
 			-- In this case, the first element of each pair is the key, whereas the second element is a tuple,
 			-- whose `d1` field refers to a value of type DATA1 and `d2` field refers to a value of type DATA2.
+		local
+			pair: PAIR[KEY, TUPLE[d1: DATA1; d2: DATA2]]
 		do
 			-- TODO: Implement the abstraction function.
 			create Result.make_empty
+			across 1 |..| keys.count is i loop
+				check attached data_items_2.at (keys.i_th (i)) as key then
+					create pair.make (keys.i_th (i), [data_items_1.item (i), key])
+					Result.extend (pair)
+				end
+			end
 
 		ensure
 			-- This is the only place where you can refer to the three implementation attributes
@@ -90,7 +98,7 @@ feature -- Constructor
 			data_items_2.compare_objects
 		ensure
 			empty_repository: -- TODO:
-				True
+				model.count ~ 0
 		end
 
 feature -- Commands

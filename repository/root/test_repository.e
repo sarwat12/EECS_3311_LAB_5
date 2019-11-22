@@ -20,7 +20,7 @@ feature -- Add test classes
 
 			-- When submitting, make sure that you comment out this line
 			-- to take out the reference to STUDENT_TESTS.
-			add_test (create {STUDENT_TESTS}.make)
+			--add_test (create {STUDENT_TESTS}.make)
 
 
 			show_browser
