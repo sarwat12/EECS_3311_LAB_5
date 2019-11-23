@@ -111,7 +111,7 @@ feature -- Commands
 			-- Insert a new data set into current repository.
 		require
 			non_existing_key: -- TODO:
-				True
+				not model.domain.has (k)
 		do
 			-- Implemented for you.
 			-- Do not touch.
@@ -120,26 +120,29 @@ feature -- Commands
 			data_items_2.extend (d2, k)
 		ensure
 			repository_count_incremented: -- TODO:
-				True
+				model.count = old model.count + 1
 
 			data_set_added: -- TODO:
 				-- Hint: At least a pair (k, [d1, d2]) the current model
 				-- has its key 'k', data item 1 'd1', and data item 2 'd2'.
 				-- If you can't get this postcondition to work, simply put TRUE here.
-				True
+				model ~ (old model.deep_twin).extended (create {PAIR[KEY, TUPLE[DATA1, DATA2]]}.make (k, [d1, d2]))
 
 			others_unchanged: -- TODO:
 				-- Hint: Each pair (k, [d1, d2]) in the current model,
 				-- if not the same as (`k`, `d1`, `d2`), must also exist in the old model.
 				-- If you can't get this postcondition to work, simply put TRUE here.
-				True
+				across model is i all
+					(i.first /~ k) implies ((old model.deep_twin).domain.has (i.first) and
+					(old model.deep_twin).range.has ([i.second.d1, i.second.d2]))
+				end
 		end
 
 	check_out (k: KEY)
 			-- Delete a data set with key `k` from current repository.
 		require
 			existing_key: -- TODO:
-				True
+				model.domain.has (k)
 		local
 			i: INTEGER
 			new_values: ARRAY[DATA1]
@@ -166,16 +169,19 @@ feature -- Commands
 			data_items_1 := new_values
 		ensure
 			repository_count_decremented: -- TODO:
-				True
+				model.count = old model.count - 1
 
 			key_removed: -- TODO:
-				True
+				model ~ (old model.deep_twin).domain_subtracted_by (k)
 
 			others_unchanged: -- TODO:
 				-- Hint: Each pair (k, [d1, d2]) in the old model,
 				-- if not with key `k`, must also exist in the curent model.
 				-- If you can't get this postcondition to work, simply put TRUE here.
-				True
+				across (old model.deep_twin) is j all
+					(j.first /~ k) implies (model.domain.has (j.first)
+					and model.range.has ([j.second.d1, j.second.d2]))
+				end
 		end
 
 feature -- Queries
@@ -220,7 +226,9 @@ feature -- Queries
 				-- Hint: Each key in Result has its associated data items 'd1' and 'd2' in model.
 				-- Note: across Current ... is forbidden for this postcondition.
 				-- If you can't get this postcondition to work, simply put TRUE here.
-				True
+				across Result as j all
+					model.range_restricted_by ([d1, d2]).domain.has (j.item)
+				end
 
 			correct_keys_are_in_result: -- TODO:
 				-- Hint: Each pair in model with data items 'd1' and 'd2' has its key included in Result.
@@ -228,7 +236,11 @@ feature -- Queries
 				-- Notice that Result is ITERABLE and does not support the feature 'has',
 				-- Use the appropriate across expression instead.
 				-- If you can't get this postcondition to work, simply put TRUE here.
-				True
+				across model as j all
+					across Result as k all
+							(j.item.first ~ k.item) implies (j.item.second.d1 ~ d1 and j.item.second.d2 ~ d2)
+					end
+				end
 		end
 
 invariant
